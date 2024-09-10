@@ -1,0 +1,387 @@
+
+# R for Data Science: Data transformation
+```{r}
+library(tidyverse)
+```
+
+#### Rows: filter(), arrange(), distinct(), count()
+
+```{r}
+# install.packages("nycflights13")
+library(nycflights13)
+glimpse(flights)
+```
+
+```{r}
+flights |>
+  filter(month %in% c(1, 2))
+  # is the same as `filter(month == 1 | month == 2)`
+
+```
+
+**3.2.5 Exercise**
+
+1. In a single pipeline for each condition, find all flights that meet the condition:
+
+Had an arrival delay of two or more hours
+Flew to Houston (IAH or HOU)
+Were operated by United, American, or Delta
+Departed in summer (July, August, and September)
+```{r}
+
+flights |>
+  filter(dest %in% c("IAH", "HOU")) |>
+  filter(arr_delay > 2*60) |>
+  filter(carrier %in% c("DL", "UA", "AA")) |>
+  filter(month %in% c(7,8,9))
+  
+```
+
+Arrived more than two hours late but didn’t leave late
+```{r}
+flights |>
+    filter(dep_delay == 0 & arr_delay > 2*60)
+```
+
+Were delayed by at least an hour, but made up over 30 minutes in flight
+```{r}
+flights |>
+  filter(dep_delay > 60 & (dep_delay - arr_delay) > 30)
+```
+
+```{r}
+# 2. Sort flights to find the flights with the longest departure delays. 
+# Find the flights that left earliest in the morning.
+
+flights |>
+  arrange(desc(dep_delay)) |>
+  arrange(sched_dep_time)
+```
+
+```{r}
+# 3. Sort flights to find the fastest flights. (Hint: Try including a math calculation inside of your function.)
+flights |>
+  arrange(air_time / distance)
+  
+```
+
+```{r}
+# 4. Was there a flight on every day of 2013?
+flights |>
+  distinct(month, day)
+
+print('yes')
+```
+
+```{r}
+# 5. Which flights traveled the farthest distance? Which traveled the least distance?
+flights |> 
+  arrange(distance)
+  # arrange(desc(distance))
+```
+
+```{r}
+# 6. Does it matter what order you used filter() and arrange() if you’re using both? 
+# Why/why not? Think about the results and how much work the functions would have to do.
+print("No, `filter` does not shift the order and `arrange` does not filter")
+
+```
+
+
+#### Columns: mutate(), select(), rename(), relocate()
+
+```{r}
+flights |>
+  mutate(
+    gain = dep_delay - arr_delay,
+    speed = distance / air_time * 60,
+    .before = 1, # or `year`
+    .keep = 'used' # or specify columns
+  )
+```
+
+
+```{r}
+flights |>
+  select(ends_with("_time"))
+```
+
+
+```{r}
+# Select can also rename
+flights |> 
+  select(tail_num = tailnum)
+```
+
+
+```{r}
+flights |>
+  relocate(starts_with('arr'), .before = dep_time)
+```
+
+**3.3.5 Exercises**
+```{r}
+# 1. Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
+flights |>
+  select(contains('dep'))
+
+print("They relate in that sched_dep_time is the time the flight should dep, but dep_time is the actual time the flight dept. dep_delay is then dep_time minus the sched_dep_time.")
+```
+
+
+```{r}
+# 2. Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+flights |>
+  select(starts_with('dep'), starts_with('arr'))
+```
+
+
+```{r}
+# 3. What happens if you specify the name of the same variable multiple times in a select() call?
+print("it will just keep on selecting the same column. Like clicking the same button multiple times.")
+```
+
+
+```{r}
+# 4. What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+variables <- c("year", "month", "day", "dep_delay", "arr_delay")
+
+flights |> 
+  select(any_of(variables))
+```
+
+```{r}
+# 5. Does the result of running the following code surprise you? 
+# How do the select helpers deal with upper and lower case by default? 
+flights |> select(contains("TIME"))
+print('Yes, it suprises me. I thought it would be case sensitive, since `select` is case sensitive by default.')
+
+# How can you change that default?
+flights |> select(contains("TIME", ignore.case = FALSE))
+```
+
+
+```{r}
+# 6. Rename air_time to air_time_min to indicate units of measurement and move it to the beginning of the data frame.
+flights |>
+  relocate(air_time) |>
+  rename(air_time_min = air_time)
+
+```
+
+
+```{r}
+# 7. Why doesn’t the following work, and what does the error mean?
+flights |> 
+  select(tailnum) |> 
+  arrange(arr_delay)
+#> Error in `arrange()`:
+#> ℹ In argument: `..1 = arr_delay`.
+#> Caused by error:
+#> ! object 'arr_delay' not found
+
+print("Because the selected column `tialnum` does not contain a column `arr_delay` to sort.")
+```
+
+#### Groups: group_by(), .by(), summerize(), slice_()
+
+**3.5.7 Exercises**
+```{r}
+# 1. Which carrier has the worst average delays? 
+# Challenge: can you disentangle the effects of bad airports vs. bad carriers? 
+# Why/why not? (Hint: think about flights |> group_by(carrier, dest) |> summarize(n()))
+
+flights |> 
+  mutate(total_delay = dep_delay + arr_delay) |> 
+  relocate(total_delay) |> 
+  group_by(carrier) |>
+  summarize(
+    avg_delay = mean(total_delay, na.rm = TRUE)
+) |> 
+  arrange(desc(avg_delay)) -> carrier_avg_delay
+
+carrier_avg_delay
+
+
+```
+```{r}
+# EXTRA: plotting the above in a bar chart
+ggplot(
+  carrier_avg_delay,
+  aes(
+    x = carrier,
+    y = avg_delay
+  )
+)+
+  geom_col()
+  # geom_bar(stat = "identity")
+
+
+```
+
+
+```{r}
+# 2. Find the flights that are most delayed upon departure from each destination.
+flights |> 
+  group_by(dest) |> 
+  arrange(desc(dep_delay)) |> 
+  slice_head(n=5) |> 
+  relocate(dest, dep_delay)
+
+
+```
+
+
+```{r}
+# 3. How do delays vary over the course of the day? Illustrate your answer with a plot.
+
+# select data
+flights_selection <- flights |> 
+  group_by(hour) |> 
+  summarise(
+    avg_delay = mean(dep_delay, na.rm = TRUE)
+  )
+flights_selection
+
+# plot
+ggplot(flights_selection, aes(
+  x = hour,
+  y = avg_delay
+  )
+)+
+  geom_point()+
+  geom_smooth()
+
+```
+
+
+```{r}
+# 4. What happens if you supply a negative n to slice_min() and friends?
+print("It only changes the arrange of rows. No slicing.")
+
+flights |> 
+  slice_min(dep_delay, n = 5)
+
+# # Is the same:
+# flights |> 
+#   arrange(dep_delay) |> 
+#   head(5)
+```
+
+
+```{r}
+# 5. Explain what count() does in terms of the dplyr verbs you just learned. 
+# What does the sort argument to count() do?
+print("`count` counts the number of observations per group. `sort` will arrange the group in order from large to small.")
+
+```
+
+
+```{r}
+# 6.Suppose we have the following tiny data frame:
+df <- tibble(
+  x = 1:5,
+  y = c("a", "b", "a", "a", "b"),
+  z = c("K", "K", "L", "L", "K")
+)
+
+# a. Write down what you think the output will look like, 
+# then check if you were correct, and describe what group_by() does.
+# x | y | z
+# 1 | a | K
+# 2 | b | K
+# 3 | a | L
+# 4 | a | L
+# 5 | b | K
+
+print("`group_by(y)` will create a group of `y` c(a, b).")
+df |>
+  group_by(y)
+
+# b. Write down what you think the output will look like, then check if you were correct, and describe what arrange() does. Also, comment on how it’s different from the group_by() in part (a).
+print("`arrange` will sort the values in the `y` column. Totally different method than group_by..")
+df |>
+  arrange(y)
+
+# c. Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does.
+
+# y | mean_x
+# a | 8/3
+# b | 7/2
+
+df |>
+  group_by(y) |>
+  summarize(mean_x = mean(x))
+
+# d. Write down what you think the output will look like, then check if you were correct, 
+# and describe what the pipeline does. Then, comment on what the message says.
+# z | y | mean_x
+# L | a | 7/2
+# K | a | 1
+# K | b | 7/2
+
+df |>
+  group_by(y, z) |>
+  summarize(mean_x = mean(x))
+
+# e. Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does. How is the output different from the one in part (d)?
+
+print("Guess it shows the default df, but then with an extra column mean_x showing the mean of a previous defined group. (...) Nope, it just removed the group attribute.")
+
+df |>
+  group_by(y, z) |>
+  summarize(mean_x = mean(x), .groups = "drop")
+
+# f. Write down what you think the outputs will look like, then check if you were correct, and describe what each pipeline does. How are the outputs of the two pipelines different?
+print("The last one will not do anything with regards to the groups. Though it uses the groups to calculate the mean_x.")
+
+df |>
+  group_by(y, z) |>
+  summarize(mean_x = mean(x))
+
+df |>
+  group_by(y, z) |>
+  mutate(mean_x = mean(x))
+```
+
+
+```{r}
+df |>
+  arrange(y)
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
