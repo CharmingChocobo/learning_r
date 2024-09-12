@@ -1,0 +1,113 @@
+
+# R for Data Science: Data tidying
+```{r}
+library(tidyverse)
+```
+## pivot_longer(), pivot_wider(), parse_number()
+
+```{r}
+head(billboard)
+```
+
+
+```{r}
+billboard |> 
+  pivot_longer(               # pivots indicated `cols`
+    cols = starts_with("wk"),
+    names_to = "week",
+    values_to = "rank",
+    values_drop_na = TRUE
+  ) |> 
+  mutate(
+    week = parse_number(week) # renames values in `week` from 'wk1' into `1`.
+  )
+```
+
+
+```{r}
+who2 |> 
+  pivot_longer(
+    cols = !(country:year),
+    names_to = c("diagnosis", "gender", "age"), # separates it into multiple columns
+    names_sep = "_",                            # indicates how they the columns are separated
+    values_to = "count",
+    values_drop_na = TRUE,
+  )
+```
+
+```{r}
+household |> 
+  pivot_longer(
+    cols = !family,
+    names_to = c('.value', 'child'), # ".value" overrides the usual values_to argument to use the first component of the pivoted column name as a variable name in the output.
+    names_sep = '_',
+    values_drop_na = TRUE
+  )
+```
+
+
+```{r}
+# Dit vind ik nog lastig te begrijpen..
+df <- tribble(
+  ~id, ~measurement, ~value,
+  "A",        "bp1",    100,
+  "B",        "bp1",    140,
+  "B",        "bp2",    115, 
+  "A",        "bp2",    120,
+  "A",        "bp3",    105
+)
+
+df |>
+  pivot_wider(
+    names_from = measurement,
+    values_from = value
+  )
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
