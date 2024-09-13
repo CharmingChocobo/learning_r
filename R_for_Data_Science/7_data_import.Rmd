@@ -1,0 +1,193 @@
+
+# R for Data Science
+```{r}
+library(tidyverse)
+```
+## 7. Data import
+#### read_csv(), read_*()
+
+```{r}
+students <- read_csv("
+Student ID,Full Name,favourite.food,mealPlan,AGE
+1,Sunil Huffmann,Strawberry yoghurt,Lunch only,4
+2,Barclay Lynn,French fries,Lunch only,5
+3,Jayendra Lyne,N/A,Breakfast and lunch,7
+4,Leon Rossini,Anchovies,Lunch only,
+5,Chidiegwu Dunkel,Pizza,Breakfast and lunch,five
+6,Güvenç Attila,Ice cream,Lunch only,6
+                     ", na = c("N/A", '')) 
+
+students
+```
+
+
+**7.2.4 Exercises**
+```{r}
+# 1. What function would you use to read a file where fields were separated with “|”?
+tabler <- read_delim(
+  "
+  a|b|c
+  1|2|3
+  4|5|6
+  ",
+  delim = '|'
+)
+tabler
+```
+
+
+```{r}
+# 2. Apart from file, skip, and comment, what other arguments do read_csv() and read_tsv() have in common?
+print('all...')
+
+```
+
+
+```{r}
+# 3. What are the most important arguments to read_fwf()?
+print('The first two arguments: "file", "col_positions"')
+```
+
+
+```{r}
+# 4. To read the following text into a data frame, what argument to read_csv() do you need to specify?
+
+read_csv("x,y\n1,'a,b'", quote = "\'")
+```
+
+
+```{r}
+# 5. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+
+read_csv("a,b\n1,2,3\n4,5,6") # number of columns > number of values per row
+read_csv("a,b,c\n1,2\n1,2,3,4") # number of columns >< number of values per row
+read_csv("a,b\n\1") # number of columns < number of values per row
+read_csv("a,b\n1,2\na,b") # different value types
+read_csv2("a;b\n1;3") # different separator
+
+```
+
+
+```{r}
+# 6. Practice referring to non-syntactic names in the following data frame by:
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+# a. Extracting the variable called 1.
+# annoying$`1`
+annoying |> 
+  select(`1`)
+
+# b. Plotting a scatterplot of 1 vs. 2.
+ggplot(
+  annoying,
+  aes(
+    x = `1`,
+    y = `2`,
+  )
+) + 
+  geom_point()
+
+# c. Creating a new column called 3, which is 2 divided by 1.
+annoying <- annoying |>
+            mutate(
+              `3` = `2`/`1`
+            )
+
+# d. Renaming the columns to one, two, and three.
+annoying |>
+  rename(
+    one = `1`,
+    two = `2`,
+    three = `3`
+  )
+```
+
+#### problems(), changing column types
+
+```{r}
+# try to convert data type from char to double:
+df <- read_csv("
+  x
+  10
+  .
+  20
+  30",
+    col_types = list(x = col_double())
+)
+
+# problems will report what prevented the conversion.
+problems(df)
+
+```
+
+https://r4ds.hadley.nz/data-import#column-types:
+
+col_logical() and col_double() read logicals and real numbers. They’re relatively rarely needed (except as above), since readr will usually guess them for you.
+col_integer() reads integers. We seldom distinguish integers and doubles in this book because they’re functionally equivalent, but reading integers explicitly can occasionally be useful because they occupy half the memory of doubles.
+col_character() reads strings. This can be useful to specify explicitly when you have a column that is a numeric identifier, i.e., long series of digits that identifies an object but doesn’t make sense to apply mathematical operations to. Examples include phone numbers, social security numbers, credit card numbers, etc.
+col_factor(), col_date(), and col_datetime() create factors, dates, and date-times respectively; you’ll learn more about those when we get to those data types in Chapter 16 and Chapter 17.
+col_number() is a permissive numeric parser that will ignore non-numeric components, and is particularly useful for currencies. You’ll learn more about it in Chapter 13.
+13.1 Introduction
+Numeric vectors are the backbone of data science, and you’ve already used them a bunch of times earlier in the book. Now it’s time to systematically survey what you can do with them in R, ensuring that you’re well situated to tackle any future problem involving numeric vectors.
+
+We’ll start by giving you a couple of tools to make numbers if you have strings, and then going into a little more detail of count(). Then we’ll dive into various numeric transformations that pair well with mutate(), including more general transformations that can be applied to other types of vectors, but are often used with numeric vectors. We’ll finish off by covering the summary functions that pair well with summarize() and show you how they can also be used with mutate().
+
+13.1.1 Prerequisites
+This chapter mostly uses functions from base R, which are available without loading any packages. But we still need the tidyverse because we’ll use these base R functions inside of tidyverse functions like mutate() and filter(). Like in the last chapter, we’ll use real examples from nycflights13, as well as toy examples made with c() and tribble().
+
+library(tidyverse)
+library(nycflights13)
+
+13.2 Making numbers
+In most cases, you’ll get numbers already recorded in one of R’s numeric types: integer or double. In some cases, however, you’ll encounter them as strings, possibly because you’ve created them by pivoting from column headers or because something has gone wrong in your data import process.
+
+readr provides two useful functions for parsing strings into numbers: parse_double() and parse_number(). Use parse_double() when you have numbers that have been written as strings:
+
+x <- c("1.2", "5.6", "1e3")
+parse_double(x)
+#> [1]    1.2    5.6 1000.0
+
+Use parse_number() when the string contains non-numeric text that you want to ignore. This is particularly useful for currency data and percentages:
+
+x <- c("$1,234", "USD 3,513", "59%")
+parse_number(x)
+#> [1] 1234 3513   59
+
+col_skip() skips a column so it’s not included in the result, which can be useful for speeding up reading the data if you have a large CSV file and you only want to use some of the columns.
+
+#### write_csv(), write_rds()
+
+write_csv is not good practice for storing a data frame, use write_rds() instead.
+
+```{r}
+col_logical()
+col
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
