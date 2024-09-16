@@ -57,21 +57,41 @@ df <- tribble(
   "A",        "bp3",    105
 )
 
+# If a single `id` has multiple identical `measurement`
+df <- tribble(
+  ~id, ~measurement, ~value,
+  "A",        "bp1",    100,
+  "A",        "bp1",    102,
+  "A",        "bp2",    120,
+  "B",        "bp1",    140, 
+  "B",        "bp2",    115
+)
+
 df |>
   pivot_wider(
     names_from = measurement,
-    values_from = value
+    values_from = value,
+    values_fn = 
   )
 
 ```
 
 
 ```{r}
-
+df |> 
+  group_by(id, measurement) |> 
+  summarize(n = n(), .groups = "drop") |> 
+  filter(n > 1)
+#> # A tibble: 1 × 3
+#>   id    measurement     n
+#>   <chr> <chr>       <int>
+#> 1 A     bp1             2
 ```
 
-```{r}
 
+## Scripts and projects
+```{r}
+getwd()
 ```
 
 
