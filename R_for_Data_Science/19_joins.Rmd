@@ -1,0 +1,63 @@
+
+# R for Data Science: Data tidying
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+## left_join()
+
+### if key column names are the same
+
+```{r}
+# Now joining the two tables:
+flights2 <- flights |> 
+  select(
+    year,
+    time_hour,
+    origin,
+    dest,
+    tailnum,
+    carrier
+  )
+
+flights2
+```
+
+```{r}
+airlines
+```
+
+```{r}
+# Now joining the two tables:
+flights3 <- flights2 |> 
+  left_join(
+    airlines
+  )
+
+glimpse(flights3)
+
+# Note that in `red` the join is recognized.
+```
+
+### if key column names differ 
+
+```{r}
+airlines2 <- airlines |> 
+  rename(
+    key = carrier
+  )
+
+airlines2
+```
+
+```{r}
+# if key column names differ, then use:
+flights4 <- flights2 |> 
+  left_join(
+    airlines2,
+    by = c("carrier" = "key") # <- THIS MAGIC!
+  )
+
+flights4
+```
+
