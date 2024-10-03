@@ -1,0 +1,274 @@
+
+# R for Data Science: Data tidying
+
+## function(){}
+```{r}
+library(tidyverse)
+```
+
+```{r}
+# # anatomy/semantics
+# name <- function(arguments) {
+#   body
+# }
+```
+
+```{r}
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+```{r}
+x = c(1, 2, 3, 4)
+rescale01(x)
+```
+
+
+
+**25.2.5 Exercises**
+
+```{r}
+# 1.Practice turning the following code snippets into functions. Think about what each function does. What would you call it? How many arguments does it need?
+
+x = c(1,2,3, NA)
+y = c(1,2,3, NA, NA)
+z = c(1,2,3, NA, NA, NA)
+
+
+mean(is.na(x))
+mean(is.na(y))
+mean(is.na(z))
+
+x / sum(x, na.rm = TRUE)
+y / sum(y, na.rm = TRUE)
+z / sum(z, na.rm = TRUE)
+
+round(x / sum(x, na.rm = TRUE) * 100, 1)
+round(y / sum(y, na.rm = TRUE) * 100, 1)
+round(z / sum(z, na.rm = TRUE) * 100, 1)
+
+# new written functions
+na_proportion <- function(x) {
+  mean(is.na(x))
+}
+
+proportion_value <- function(x) {
+  x / sum(x, na.rm = TRUE)
+}
+
+percentage_value <- function(x) {
+  round(x / sum(x, na.rm = TRUE) * 100, 1)
+}
+
+# # list of lists
+# x = c(1,2,3, NA)
+# y = c(1,2,3, NA, NA)
+# z = c(1,2,3, NA, NA, NA)
+# 
+# lists <- c((x), y, z)
+# 
+# for (item in lists) {
+#   print(item)
+#   # print(na_proportion(item))
+# }
+
+```
+
+
+
+```{r}
+# TODO: 2. In the second variant of rescale01(), infinite values are left unchanged. Can you rewrite rescale01() so that -Inf is mapped to 0, and Inf is mapped to 1?
+
+
+rescale01 <- function(x) {
+  case_when(
+    x == 1 ~ 0,
+    x == 10 ~ 1,
+    .default = x 
+  )
+  
+}
+# (x - rng[1]) / (rng[2] - rng[1])
+
+# x <- c(-Inf, 1:10, Inf)
+x <- c(1:10)
+rescale01(x)
+
+```
+
+
+```{r}
+# 3. Given a vector of birthdates, write a function to compute the age in years.
+
+# given vector
+vector_years <- c(1953, 1956, 1963, 1988, 1993)
+
+# function
+age <- function(vector, year) {
+  year - vector
+}
+
+age(vector_years, 2024)
+
+```
+
+```{r}
+# 4. Write your own functions to compute the variance and skewness of a numeric vector. You can look up the definitions on Wikipedia or elsewhere.
+
+# functions
+variance <- function(vector) {
+  (sum((vector - mean(vector)) ** 2)) / (length(vector) - 1)
+}
+
+skewnes <- function(vector) {
+  n = length(vector)
+  
+  # parts of equation
+  part1 = sum(((vector - mean(vector)) / sqrt(variance(vector))) ** 3)
+  part2 = n / ((n - 1)*(n - 2))
+
+  # putting things together
+  part1 * part2
+}
+
+# results
+variance(vector_years)
+skewnes(vector_years)
+
+
+```
+
+```{r}
+# 5. Write both_na(), a summary function that takes two vectors of the same length and returns the number of positions that have an NA in both vectors.
+
+# vectors
+list_a = c(NA, 1, 2, NA)
+list_b = c(1, 2, NA, NA)
+
+# function
+both_na <- function(vector_a, vector_b) {
+  r1 <- which(is.na(vector_a))
+  r2 <- which(is.na(vector_b))
+  intersect(r1, r2)
+}
+
+# results
+both_na(list_a, list_b)
+
+```
+
+```{r}
+# 6. Read the documentation to figure out what the following functions do. Why are they useful even though they are so short?
+path_to_data <- 'DIR/'
+data_file <- 'FILE.txt'
+
+is_directory <- function(x) {
+  #' returns a bool if a given path is a directory
+  file.info(x)$isdir
+}
+is_readable <- function(x) {
+  #' returns a bool if mode 4 (read permission) is True
+  file.access(x, 4) == 0
+}
+
+
+# results
+is_directory(path_to_data)
+is_readable(paste0(path_to_data, data_file))
+# file.info(paste0(path_to_data, data_file))
+
+
+```
+
+
+
+## 
+
+```{r}
+grouped_mean <- function(df, group_var, mean_var) {
+  df |> 
+    group_by({{group_var}}) |> 
+    summarize(mean({{mean_var}}))
+}
+
+grouped_mean_BAD <- function(df, group_var, mean_var) {
+  df |> 
+    group_by(group_var) |> 
+    summarize(mean(mean_var))
+}
+```
+
+```{r}
+df <- tibble(
+  mean_var = 1,
+  group_var = "g",
+  group = 1,
+  x = 10,
+  y = 100
+)
+
+df |> grouped_mean(group, x)
+#> # A tibble: 1 × 2
+#>   group_var `mean(mean_var)`
+#>   <chr>                <dbl>
+#> 1 g                        1
+df |> grouped_mean(group, y)
+#> # A tibble: 1 × 2
+#>   group_var `mean(mean_var)`
+#>   <chr>                <dbl>
+#> 1 g                        1
+```
+
+```{r}
+diamonds |> grouped_mean(cut, carat)
+```
+
+```{r}
+# https://twitter.com/Diabb6/status/1571635146658402309
+count_prop <- function(df, var, sort = FALSE) {
+  df |>
+    count({{ var }}, sort = sort) |>
+    mutate(prop = n / sum(n))
+}
+
+diamonds |> count_prop(clarity)
+#> # A tibble: 8 × 3
+#>   clarity     n   prop
+#>   <ord>   <int>  <dbl>
+#> 1 I1        741 0.0137
+#> 2 SI2      9194 0.170 
+#> 3 SI1     13065 0.242 
+#> 4 VS2     12258 0.227 
+#> 5 VS1      8171 0.151 
+#> 6 VVS2     5066 0.0939
+#> # ℹ 2 more rows
+```
+
+
+```{r}
+# https://twitter.com/Diabb6/status/1571635146658402309
+count_prop <- function(df, var, sort = FALSE) {
+  df |>
+    count({{ var }}, sort = sort) #|>
+    # mutate(prop = n / sum(n))
+}
+
+diamonds |> count_prop(clarity)
+#> # A tibble: 8 × 3
+#>   clarity     n   prop
+#>   <ord>   <int>  <dbl>
+#> 1 I1        741 0.0137
+#> 2 SI2      9194 0.170 
+#> 3 SI1     13065 0.242 
+#> 4 VS2     12258 0.227 
+#> 5 VS1      8171 0.151 
+#> 6 VVS2     5066 0.0939
+#> # ℹ 2 more rows
+```
+
+
+
+
+

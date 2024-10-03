@@ -205,6 +205,8 @@ carrier_avg_delay
 
 
 ```
+
+
 ```{r}
 # EXTRA: plotting the above in a bar chart
 ggplot(
