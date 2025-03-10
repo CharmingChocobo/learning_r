@@ -17,6 +17,7 @@
 | Path('/dir/') | file.something('dir/') |
 | range(10) | c(0:9) | 
 | type() | class() or typeof() |
+| df.shape | dim(df) |
 
 **IMPORTANT NOTES:**
 - In `c(1:10)` R starts at 1 incl. 10, while Pythons `range(10)` starts counting from 0 till 10 (generating 10 integers).
