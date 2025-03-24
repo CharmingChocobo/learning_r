@@ -386,6 +386,12 @@ ggplot(mpg, aes(x = cty, y = hwy)) +
 
 ```
 
+Color pallets:
+https://ggplot2-book.org/scales-colour#brewer-scales
+```{r}
+RColorBrewer::display.brewer.all()
+```
+
 #### END
 ```{r}
 

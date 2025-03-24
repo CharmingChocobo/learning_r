@@ -173,9 +173,9 @@ flights |>
 
 ```{r}
 # 7. Why doesn’t the following work, and what does the error mean?
-flights |> 
-  select(tailnum) |> 
-  arrange(arr_delay)
+# flights |> 
+#   select(tailnum) |> 
+#   arrange(arr_delay)
 #> Error in `arrange()`:
 #> ℹ In argument: `..1 = arr_delay`.
 #> Caused by error:
