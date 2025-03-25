@@ -1,5 +1,6 @@
 # R Shiny app reminders
 - Check out the reaction flow by placing `options(shiny.reactlog = TRUE)` in the app and pressing `CTRL + F3` in the browser.
+- Do not create variables outside the server(). This will create an error when deploying dashboard to shinyapps.io.
 - Make general plot functions for only plotting. Small differences can still be changed outside its function.
 ```r
 # In a function module
